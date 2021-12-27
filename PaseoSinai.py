@@ -72,7 +72,7 @@ def simulate(Time,DeltaTime,beta, ParticlePosition0, TimeData = 100):
             elif proba > pleft[ParticlePosition]: next = +1
             ParticlePosition += next
         if i%TimeData == 0:
-            Results[f't={int(i*100/TimeData):d}'] = np.abs(ParticlePosition0 - ParticlePosition)**2.0
+            Results[f't={int(i*100/TimeData):d}'] = ParticlePosition
     return pd.Series(Results)
 
 
@@ -82,22 +82,18 @@ Deltas = np.linspace(0,1,num = 11,endpoint=True)*0.5
 
 t0 = time.time()
 Results = pd.DataFrame()
-e_Results = pd.DataFrame()
 for delta in Deltas:
     delta = round(delta,2)
     pright = 1/2 + delta*np.random.uniform(low = -1.0, high = 1.0, size = N) #? probability of the particle jumping right [0.0,1.0)
     pleft = 1 - pright #? probability of the particle jumping left
     simulation_results = pd.DataFrame()
     for i in range(150):
-        simulation_results[f'iter{i+1}'] = simulate(Time,DeltaTime,beta,ParticlePosition0)
-    simulation_results[f'mean_rows'] = simulation_results.mean(axis = 1)
-    print(simulation_results.mean(axis = 1),'\n')
-    simulation_results[f'std_rows'] = simulation_results.std(axis = 1)
-    Results[f'delta={delta}'] = simulation_results.mean(axis = 1)
-    e_Results[f'delta={delta}'] = simulation_results.std(axis = 1)
+        Evolucion = simulate(Time,DeltaTime,beta,ParticlePosition0)
+        Evolucion.to_excel(f'DatosSinai/Iteracion{i+1:0>3d}.xlsx', engine = 'openpyxl')
+        simulation_results[f'iter{i+1}'] = Evolucion
+    Results[f'delta={delta}'] = simulation_results.var(axis = 1)
 
 
-Results.to_excel('RPaseoSinai2.xlsx', engine = 'openpyxl')
-e_Results.to_excel('ePaseoSinai2.xlsx', engine = 'openpyxl')
+Results.to_excel('RPaseoSinai3.xlsx', engine = 'openpyxl')
 print(time.time()-t0)
 print(Results)
